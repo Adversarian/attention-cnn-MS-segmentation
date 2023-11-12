@@ -63,7 +63,7 @@ def save_weights(
         },
         weights_fpath,
     )
-    shutil.copyfile(weights_fpath, os.path.join(weights_path, "latest.th"))
+    shutil.copyfile(weights_fpath, os.path.join(weights_path, "latest.pth"))
 
 
 def load_weights(model, optimizer, fpath):
@@ -235,7 +235,7 @@ def test(model, test_loader, criterion, seq_size, sliding_window, loss_type="dic
             preds = get_predictions(outputs)
             test_error += error(preds, targets.cpu())
             tmp_tp, tmp_fp, tmp_fn, tmp_tn = compute_performance(preds, targets.cpu())
-            dice(tmp_tp, tmp_fp, tmp_fn)
+            # dice(tmp_tp, tmp_fp, tmp_fn) # ??? what is this
             test_tp += tmp_tp
             test_fp += tmp_fp
             test_fn += tmp_fn
@@ -286,18 +286,21 @@ def compute_output(model, test_loader, output_path, seq_size, sliding_window):
             imgs_to_save = []
             for j in range(curr_seq_size):
                 np_pred = pred[j]
-                ejtema = np.zeros((160, 160))
-                notditectedlesion = np.zeros((160, 160))
-                wronglesiondetected = np.zeros((160, 160))
+                # ejtema = np.zeros((160, 160)) # not used anywhere
+                # notditectedlesion = np.zeros((160, 160))
+                # wronglesiondetected = np.zeros((160, 160))
                 b = targets[j]
-                for i in range(b.shape[0] - 1):
-                    for k in range(b.shape[1] - 1):
-                        if b[i, k] == 1 or np_pred[i, k] == 1:
-                            ejtema[i, k] = 1
-                            if b[i, k] == 1 and np_pred[i, k] == 0:
-                                notditectedlesion[i, k] = 1
-                            if b[i, k] == 0 and np_pred[i, k] == 1:
-                                wronglesiondetected[i, k] = 1
+                # ejtema = torch.bitwise_or(b, np_pred).cpu().numpy() # not used anywhere
+                notditectedlesion = torch.bitwise_and(b, torch.bitwise_not(np_pred)).cpu().numpy()
+                wronglesiondetected = torch.bitwise_and(torch.bitwise_not(b), np_pred).cpu().numpy()
+                # for i in range(b.shape[0] - 1):
+                #     for k in range(b.shape[1] - 1):
+                #         if b[i, k] == 1 or np_pred[i, k] == 1:
+                #             ejtema[i, k] = 1
+                #             if b[i, k] == 1 and np_pred[i, k] == 0:
+                #                 notditectedlesion[i, k] = 1
+                #             if b[i, k] == 0 and np_pred[i, k] == 1:
+                #                 wronglesiondetected[i, k] = 1
 
                 false_negative_mask = torch.from_numpy(
                     ndi.binary_fill_holes(notditectedlesion).astype(int)
