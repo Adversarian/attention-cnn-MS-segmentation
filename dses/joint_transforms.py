@@ -1,9 +1,12 @@
 from __future__ import division
-import random
-from PIL import Image
-import numpy as np
+
 import numbers
+import random
+
+import numpy as np
 import torchvision.transforms.functional as F
+from PIL import Image
+
 
 class JointScale(object):
     """Rescales the input PIL.Image to the given 'size'.
@@ -14,29 +17,29 @@ class JointScale(object):
     interpolation: Default: PIL.Image.BILINEAR
     """
 
-    def __init__(self, size, interpolation  = Image.BILINEAR):
+    def __init__(self, size, interpolation=Image.BILINEAR):
         self.size = size
-        #print("SIZE: ", size)
-        self.interpolation   = interpolation  
+        # print("SIZE: ", size)
+        self.interpolation = interpolation
 
     def __call__(self, imgs):
         w, h = imgs[0].size
-        #print("w: ", w)
-        #print("h: ", h)
+        # print("w: ", w)
+        # print("h: ", h)
         if (w <= h and w == self.size) or (h <= w and h == self.size):
             return imgs
         if w < h:
             ow = self.size
-            #oh = int(self.size * h / w)
+            # oh = int(self.size * h / w)
             oh = self.size
-            #print("oh: ", oh)
-            #print("ow: ", ow)
-            return [img.resize((ow, oh), self.interpolation  ) for img in imgs]
+            # print("oh: ", oh)
+            # print("ow: ", ow)
+            return [img.resize((ow, oh), self.interpolation) for img in imgs]
         else:
             oh = self.size
             ow = int(self.size * w / h)
 
-            return [img.resize((ow, oh), self.interpolation  ) for img in imgs]
+            return [img.resize((ow, oh), self.interpolation) for img in imgs]
 
 
 class JointCenterCrop(object):
@@ -54,48 +57,51 @@ class JointCenterCrop(object):
     def __call__(self, imgs):
         w, h = imgs[0].size
         th, tw = self.size
-        x1 = int(round((w - tw) / 2.))
-        y1 = int(round((h - th) / 2.))
+        x1 = int(round((w - tw) / 2.0))
+        y1 = int(round((h - th) / 2.0))
         return [img.crop((x1, y1, x1 + tw, y1 + th)) for img in imgs]
 
+
 class JointRandomHorizontalFlip(object):
-    """Randomly horizontally flips the given list of PIL.Image with a probability of 0.5
-    """
+    """Randomly horizontally flips the given list of PIL.Image with a probability of 0.5"""
 
     def __call__(self, imgs):
-        if random.random() < 0.5: 
-            return [img.transpose(Image.FLIP_LEFT_RIGHT) for img in imgs]       
+        if random.random() < 0.5:
+            return [img.transpose(Image.FLIP_LEFT_RIGHT) for img in imgs]
         return imgs
 
+
 class JointRandomRotation(object):
-    '''Callable to randomly rotate an image and its mask.
-    '''
+    """Callable to randomly rotate an image and its mask."""
 
     def __init__(self, degree):
-        '''Creates an `JointRandomRotation` instance.
+        """Creates an `JointRandomRotation` instance.
         Args:
           p: the probability for rotating.
-        '''
+        """
 
         methods = {90: Image.ROTATE_90, 180: Image.ROTATE_180, 270: Image.ROTATE_270}
 
         if degree not in methods.keys():
-            raise NotImplementedError('We only support multiple of 90 degree rotations for now')
+            raise NotImplementedError(
+                "We only support multiple of 90 degree rotations for now"
+            )
 
         self.method = methods[degree]
 
     def __call__(self, imgs):
-        '''Randomly rotates an image and its mask.
+        """Randomly rotates an image and its mask.
         Args:
           imgs: the PIL.Image array of image and masks to transform.
         Returns:
           The PIL.Image array (image, mask) tuple with either image and mask rotated or none of them rotated.
-        '''
-        
+        """
+
         if random.random() < 0.5:
             return [img.transpose(self.method) for img in imgs]
         else:
             return imgs
+
 
 class JointRandomAffine(object):
     """Random affine transformation of the image keeping center invariant
@@ -119,27 +125,38 @@ class JointRandomAffine(object):
         fillcolor (int): Optional fill color for the area outside the transform in the output image. (Pillow>=5.0.0)
     """
 
-    def __init__(self, degrees, translate=None, scale=None, shear=None, interpolation =False, fill=0):
+    def __init__(
+        self,
+        degrees,
+        translate=None,
+        scale=None,
+        shear=None,
+        interpolation=False,
+        fill=0,
+    ):
         if isinstance(degrees, numbers.Number):
             if degrees < 0:
                 raise ValueError("If degrees is a single number, it must be positive.")
             self.degrees = (-degrees, degrees)
         else:
-            assert isinstance(degrees, (tuple, list)) and len(degrees) == 2, \
-                "degrees should be a list or tuple and it must be of length 2."
+            assert (
+                isinstance(degrees, (tuple, list)) and len(degrees) == 2
+            ), "degrees should be a list or tuple and it must be of length 2."
             self.degrees = degrees
 
         if translate is not None:
-            assert isinstance(translate, (tuple, list)) and len(translate) == 2, \
-                "translate should be a list or tuple and it must be of length 2."
+            assert (
+                isinstance(translate, (tuple, list)) and len(translate) == 2
+            ), "translate should be a list or tuple and it must be of length 2."
             for t in translate:
                 if not (0.0 <= t <= 1.0):
                     raise ValueError("translation values should be between 0 and 1")
         self.translate = translate
 
         if scale is not None:
-            assert isinstance(scale, (tuple, list)) and len(scale) == 2, \
-                "scale should be a list or tuple and it must be of length 2."
+            assert (
+                isinstance(scale, (tuple, list)) and len(scale) == 2
+            ), "scale should be a list or tuple and it must be of length 2."
             for s in scale:
                 if s <= 0:
                     raise ValueError("scale values should be positive")
@@ -148,16 +165,19 @@ class JointRandomAffine(object):
         if shear is not None:
             if isinstance(shear, numbers.Number):
                 if shear < 0:
-                    raise ValueError("If shear is a single number, it must be positive.")
+                    raise ValueError(
+                        "If shear is a single number, it must be positive."
+                    )
                 self.shear = (-shear, shear)
             else:
-                assert isinstance(shear, (tuple, list)) and len(shear) == 2, \
-                    "shear should be a list or tuple and it must be of length 2."
+                assert (
+                    isinstance(shear, (tuple, list)) and len(shear) == 2
+                ), "shear should be a list or tuple and it must be of length 2."
                 self.shear = shear
         else:
             self.shear = shear
 
-        self.interpolation  = interpolation 
+        self.interpolation = interpolation
         self.fill = fill
 
     @staticmethod
@@ -170,8 +190,10 @@ class JointRandomAffine(object):
         if translate is not None:
             max_dx = translate[0] * img_size[0]
             max_dy = translate[1] * img_size[1]
-            translations = (np.round(random.uniform(-max_dx, max_dx)),
-                            np.round(random.uniform(-max_dy, max_dy)))
+            translations = (
+                np.round(random.uniform(-max_dx, max_dx)),
+                np.round(random.uniform(-max_dy, max_dy)),
+            )
         else:
             translations = (0, 0)
 
@@ -186,14 +208,17 @@ class JointRandomAffine(object):
             shear = 0.0
 
         return angle, translations, scale, shear
-    
+
     def __call__(self, imgs):
         """
             img (PIL Image): Image to be transformed.
         Returns:
             PIL Image: Affine transformed image.
         """
-        ret = self.get_params(self.degrees, self.translate, self.scale, self.shear, imgs[0].size)
-        return [F.affine(img, *ret, interpolation=self.interpolation, fill=self.fill) for img in imgs]
-
-
+        ret = self.get_params(
+            self.degrees, self.translate, self.scale, self.shear, imgs[0].size
+        )
+        return [
+            F.affine(img, *ret, interpolation=self.interpolation, fill=self.fill)
+            for img in imgs
+        ]
