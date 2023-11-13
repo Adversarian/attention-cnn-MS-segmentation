@@ -168,7 +168,7 @@ def train(
     trn_fn = 0
     trn_tn = 0
     seq_window = (seq_size - 1) // 2
-    for idx, data in tqdm(enumerate(trn_loader)):
+    for idx, data in enumerate(tqdm(trn_loader)):
         inputs = data[0].cuda()
         targets = data[1].cuda()
         targets = targets.view(
