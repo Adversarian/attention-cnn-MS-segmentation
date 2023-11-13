@@ -7,6 +7,7 @@ import torch
 import torch.nn as nn
 from scipy import ndimage as ndi
 from torchvision.utils import make_grid, save_image
+from tqdm import tqdm
 from utils import imgs as img_utils
 
 
@@ -167,7 +168,7 @@ def train(
     trn_fn = 0
     trn_tn = 0
     seq_window = (seq_size - 1) // 2
-    for idx, data in enumerate(trn_loader):
+    for idx, data in tqdm(enumerate(trn_loader)):
         inputs = data[0].cuda()
         targets = data[1].cuda()
         targets = targets.view(
@@ -213,7 +214,7 @@ def test(model, test_loader, criterion, seq_size, sliding_window, loss_type="dic
     test_fp = 0
     test_fn = 0
     test_tn = 0
-    for inputs, targets in test_loader:
+    for inputs, targets in tqdm(test_loader):
         with torch.no_grad():
             inputs = inputs.cuda()
             targets = targets.cuda()
@@ -266,7 +267,7 @@ def compute_output(model, test_loader, output_path, seq_size, sliding_window):
     test_fn = 0
     test_tn = 0
     dice_vector = []
-    for inputs, targets in test_loader:
+    for inputs, targets in tqdm(test_loader):
         with torch.no_grad():
             inputs = inputs.cuda()
             targets = targets.cuda()
@@ -291,8 +292,12 @@ def compute_output(model, test_loader, output_path, seq_size, sliding_window):
                 # wronglesiondetected = np.zeros((160, 160))
                 b = targets[j]
                 # ejtema = torch.bitwise_or(b, np_pred).cpu().numpy() # not used anywhere
-                notditectedlesion = torch.bitwise_and(b, torch.bitwise_not(np_pred)).cpu().numpy()
-                wronglesiondetected = torch.bitwise_and(torch.bitwise_not(b), np_pred).cpu().numpy()
+                notditectedlesion = (
+                    torch.bitwise_and(b, torch.bitwise_not(np_pred)).cpu().numpy()
+                )
+                wronglesiondetected = (
+                    torch.bitwise_and(torch.bitwise_not(b), np_pred).cpu().numpy()
+                )
                 # for i in range(b.shape[0] - 1):
                 #     for k in range(b.shape[1] - 1):
                 #         if b[i, k] == 1 or np_pred[i, k] == 1:
