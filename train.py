@@ -185,6 +185,10 @@ if __name__ == '__main__':
             optimizer = torch.optim.SGD(model.parameters(), lr=lr, weight_decay=weight_decay)
         elif optim == 'RMSprop':
             optimizer = torch.optim.RMSprop(model.parameters(), lr=lr, weight_decay=weight_decay)
+        elif optim == 'AdamW':
+            optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=weight_decay)
+        elif optim == 'Adam':
+            optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
         else:
             raise ValueError("Optimizer chosen not implemented!")
 
