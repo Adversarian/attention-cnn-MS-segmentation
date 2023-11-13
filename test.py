@@ -60,6 +60,13 @@ opt_defs["patients"] = dict(
 )
 
 # Model options
+opt_defs["fc_num_layers"] = dict(
+    flags=(
+        "-fcnl",
+        "--fc-num-layers",
+    ),
+    info=dict(default=67, type=int, help="number of FCDenseNet layers ([57, 67, 103])")
+)
 opt_defs["lstm_kernel_size"] = dict(
     flags=(
         "-lstmkernel",
@@ -172,6 +179,7 @@ patient_name = opt.patient_name
 patients = opt.patients
 
 # Model options
+fc_num_layers = opt.fc_num_layers; assert fc_num_layers in [57, 67, 103]
 lstm_kernel_size = opt.lstm_kernel_size
 lstm_num_layers = opt.lstm_num_layers
 use_sa = opt.use_sa
@@ -219,12 +227,18 @@ sens_vector = []
 spec_vector = []
 
 if __name__ == "__main__":
-    model = tiramisu.FCDenseNet67(
+    if fc_num_layers == 57:
+        model_constructor = tiramisu.FCDenseNet57
+    elif fc_num_layers == 67:
+        model_constructor = tiramisu.FCDenseNet67
+    else:
+        model_constructor = tiramisu.FCDenseNet103
+    model = model_constructor(
         loss_type=loss_type,
-        n_classes=2,
+        n_classes=n_classes,
         grow_rate=12,
         use_stn=use_stn,
-        use_se=use_se,
+        use_sa=use_sa,
         seq_size=seq_size,
         use_lstm=use_lstm,
         lstm_kernel_size=lstm_kernel_size,

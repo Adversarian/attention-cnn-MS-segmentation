@@ -48,6 +48,13 @@ opt_defs["folders"] = dict(
 )
 
 # Model options
+opt_defs["fc_num_layers"] = dict(
+    flags=(
+        "-fcnl",
+        "--fc-num-layers",
+    ),
+    info=dict(default=67, type=int, help="number of FCDenseNet layers ([57, 67, 103])")
+)
 opt_defs["lstm_kernel_size"] = dict(
     flags=(
         "-lstmkernel",
@@ -184,6 +191,7 @@ val_dataset = opt.val_dataset
 folders = opt.folders
 
 # MODEL OPTIONS
+fc_num_layers = opt.fc_num_layers; assert fc_num_layers in [57, 67, 103]
 lstm_kernel_size = opt.lstm_kernel_size
 lstm_num_layers = opt.lstm_num_layers
 use_sa = opt.use_sa
@@ -311,8 +319,13 @@ if __name__ == "__main__":
 
         # SHOW SINGLE BATCH
         # train_utils.show_batch(val_loader)
-
-        model = tiramisu.FCDenseNet67(
+        if fc_num_layers == 57:
+            model_constructor = tiramisu.FCDenseNet57
+        elif fc_num_layers == 67:
+            model_constructor = tiramisu.FCDenseNet67
+        else:
+            model_constructor = tiramisu.FCDenseNet103
+        model = model_constructor(
             loss_type=loss_type,
             n_classes=n_classes,
             grow_rate=12,
