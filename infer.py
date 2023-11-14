@@ -52,6 +52,13 @@ opt_defs = {
             default=67, type=int, help="number of FCDenseNet layers ([57, 67, 103])"
         ),
     ),
+    "input_dim": dict(
+        flags=(:"-id", "--input-dim"),
+        info=dict(
+            default=160,
+            type=int,
+            help="input dimensions for center cropping"
+        ),
     "bidirectional": dict(
         flags=("-bi", "--bidirectional"),
         info=dict(
@@ -69,11 +76,12 @@ opt = parser.parse_args()
 
 if __name__ == "__main__":
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    inference_folder_path, save_path, weights_path, fc_num_layers, bidirectional = (
+    inference_folder_path, save_path, weights_path, fc_num_layers, input_dim, bidirectional = (
         Path(opt.inference_folder_path),
         Path(opt.save_path),
         Path(opt.weights_path),
         opt.fc_num_layers,
+        opt.input_dim,
         opt.bidirectional,
     )
     save_path.mkdir(exist_ok=True)
@@ -105,13 +113,14 @@ if __name__ == "__main__":
         inference_folder_path,
         transform=T.Compose(
             [
-                T.Resize(160),
-                T.CenterCrop(160),
+                T.Resize(input_dim),
+                T.CenterCrop(input_dim),
                 T.Grayscale(3),
                 T.ToTensor(),
                 T.Normalize([0.1026, 0.1026, 0.1026], [0.0971, 0.0971, 0.971]),
             ]
         ),
+        input_dim=input_dim,
     )
 
     inference_loader = DataLoader(inference_dataset, batch_size=1)
