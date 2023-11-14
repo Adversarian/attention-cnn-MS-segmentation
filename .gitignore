@@ -14,3 +14,4 @@ __pycache__
 
 MS_dataset
 tiramisu_weights_ms/
+inference_outputs/
