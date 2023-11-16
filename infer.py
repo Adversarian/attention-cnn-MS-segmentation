@@ -53,12 +53,13 @@ opt_defs = {
         ),
     ),
     "input_dim": dict(
-        flags=(:"-id", "--input-dim"),
+        flags=("-id", "--input-dim"),
         info=dict(
             default=160,
             type=int,
             help="input dimensions for center cropping"
         ),
+    ),
     "bidirectional": dict(
         flags=("-bi", "--bidirectional"),
         info=dict(
