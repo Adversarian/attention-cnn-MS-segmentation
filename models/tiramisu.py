@@ -329,7 +329,7 @@ def FCDenseNet103(
         up_blocks=(12, 10, 7, 5, 4),
         bottleneck_layers=15,
         growth_rate=grow_rate,
-        out_chans_first_conv=40,
+        out_chans_first_conv=48,
         loss_type=loss_type,
         n_classes=n_classes,
         use_stn=use_stn,
