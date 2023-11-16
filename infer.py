@@ -117,7 +117,7 @@ if __name__ == "__main__":
                 T.CenterCrop(input_dim),
                 T.Grayscale(3),
                 T.ToTensor(),
-                T.Normalize([0.1026, 0.1026, 0.1026], [0.0971, 0.0971, 0.971]),
+                T.Normalize([0.1026, 0.1026, 0.1026], [0.0971, 0.0971, 0.0971]),
             ]
         ),
         input_dim=input_dim,
